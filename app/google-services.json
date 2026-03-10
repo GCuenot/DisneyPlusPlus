@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "842798754077",
+    "project_id": "disneyplusplus-2a2a9",
+    "storage_bucket": "disneyplusplus-2a2a9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842798754077:android:96bdba788a630be69459f4",
+        "android_client_info": {
+          "package_name": "fr.isen.guillaume.disneyplusplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAm_AP_OH50t74TJiHDtV29qgGHiwfBvNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
