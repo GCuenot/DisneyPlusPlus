@@ -1,6 +1,7 @@
 package fr.isen.guillaume.disneyplusplus
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,15 +22,21 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
+    // On précise l'URL exacte car elle est en région europe-west1
+    val database = FirebaseDatabase.getInstance("https://disneyplusplus-2a2a9-default-rtdb.europe-west1.firebasedatabase.app/").reference
 
     var isLoginMode by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -49,7 +56,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -76,6 +83,30 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        AnimatedVisibility(visible = !isLoginMode) {
+            Column {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = firstName,
+                        onValueChange = { firstName = it },
+                        label = { Text("Prénom") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        enabled = !isLoading
+                    )
+                    OutlinedTextField(
+                        value = lastName,
+                        onValueChange = { lastName = it },
+                        label = { Text("Nom") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        enabled = !isLoading
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
 
         OutlinedTextField(
             value = email,
@@ -106,6 +137,30 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             enabled = !isLoading
         )
 
+        if (isLoginMode) {
+            Text(
+                text = "Mot de passe oublié ?",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .clickable {
+                        if (email.isBlank()) {
+                            errorMessage = "Veuillez entrer votre e-mail"
+                        } else {
+                            auth.sendPasswordResetEmail(email).addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Toast.makeText(context, "E-mail envoyé", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    errorMessage = task.exception?.localizedMessage
+                                }
+                            }
+                        }
+                    }
+                    .padding(vertical = 8.dp)
+            )
+        }
+
         if (errorMessage != null) {
             Text(
                 text = errorMessage!!,
@@ -115,11 +170,11 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                if (email.isBlank() || password.isBlank()) {
+                if (email.isBlank() || password.isBlank() || (!isLoginMode && (firstName.isBlank() || lastName.isBlank()))) {
                     errorMessage = "Veuillez remplir tous les champs"
                     return@Button
                 }
@@ -132,18 +187,36 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                             if (task.isSuccessful) {
                                 onLoginSuccess()
                             } else {
-                                errorMessage = "Erreur de connexion : ${task.exception?.localizedMessage}"
+                                errorMessage = task.exception?.localizedMessage
                             }
                         }
                 } else {
                     auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
-                            isLoading = false
                             if (task.isSuccessful) {
-                                Toast.makeText(context, "Compte créé avec succès !", Toast.LENGTH_SHORT).show()
-                                onLoginSuccess()
+                                val userId = auth.currentUser?.uid
+                                if (userId != null) {
+                                    val userMap = mapOf(
+                                        "firstName" to firstName,
+                                        "lastName" to lastName,
+                                        "email" to email
+                                    )
+                                    database.child("users").child(userId).setValue(userMap)
+                                        .addOnCompleteListener { dbTask ->
+                                            isLoading = false
+                                            if (dbTask.isSuccessful) {
+                                                Toast.makeText(context, "Compte créé !", Toast.LENGTH_SHORT).show()
+                                                onLoginSuccess()
+                                            } else {
+                                                errorMessage = "Erreur base de données : ${dbTask.exception?.localizedMessage}"
+                                            }
+                                        }
+                                } else {
+                                    isLoading = false
+                                }
                             } else {
-                                errorMessage = "Erreur d'inscription : ${task.exception?.localizedMessage}"
+                                isLoading = false
+                                errorMessage = task.exception?.localizedMessage
                             }
                         }
                 }
@@ -154,16 +227,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             enabled = !isLoading
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text(
-                    text = if (isLoginMode) "SE CONNECTER" else "CRÉER MON COMPTE",
-                    fontSize = 16.sp
-                )
+                Text(text = if (isLoginMode) "SE CONNECTER" else "S'INSCRIRE")
             }
         }
     }

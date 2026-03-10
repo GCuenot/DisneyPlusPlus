@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import fr.isen.guillaume.disneyplusplus.ui.theme.DisneyPlusPlusTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,11 +36,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             DisneyPlusPlusTheme {
                 val navController = rememberNavController()
+                val auth = remember { FirebaseAuth.getInstance() }
 
-                // 1. On crée notre état pour savoir si l'utilisateur est connecté
-                var isLoggedIn by remember { mutableStateOf(false) }
+                // État de connexion initialisé selon l'utilisateur Firebase actuel
+                var isLoggedIn by remember { mutableStateOf(auth.currentUser != null) }
 
-                // 2. On observe la pile de navigation pour connaître l'écran actuel
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -48,20 +49,14 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         TopAppBar(
                             title = { Text(text = "Disney PlusPlus") },
-
-                            // 3. Le bouton de Retour (à gauche)
                             navigationIcon = {
-                                // Si on est connecté ET qu'on n'est PAS sur la page d'accueil "universes"
                                 if (isLoggedIn && currentRoute != "universes" && currentRoute != "login") {
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Retour")
                                     }
                                 }
                             },
-
-                            // 4. Le bouton Profil (à droite)
                             actions = {
-                                // Si on est connecté ET qu'on n'est PAS sur l'écran "profile"
                                 if (isLoggedIn && currentRoute != "profile") {
                                     IconButton(onClick = { navController.navigate("profile") }) {
                                         Icon(imageVector = Icons.Default.Person, contentDescription = "Aller au Profil")
@@ -73,14 +68,12 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = if (auth.currentUser != null) "universes" else "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        // Écran de Connexion
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = {
-                                    // 5. Lors du succès, on valide l'état de connexion !
                                     isLoggedIn = true
                                     navController.navigate("universes") {
                                         popUpTo("login") { inclusive = true }
@@ -89,7 +82,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Écran Liste des Univers
                         composable("universes") {
                             UniverseListScreen(
                                 onUniverseClick = { universeId ->
@@ -98,7 +90,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Écran Liste des Films
                         composable("movies/{universeId}") { backStackEntry ->
                             val universeId = backStackEntry.arguments?.getString("universeId")
                             MovieListScreen(
@@ -109,15 +100,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Écran Détails du Film
                         composable("movie_detail/{movieId}") { backStackEntry ->
                             val movieId = backStackEntry.arguments?.getString("movieId")
                             MovieDetailScreen(movieId = movieId)
                         }
 
-                        // Écran Profil
                         composable("profile") {
-                            ProfileScreen()
+                            ProfileScreen(
+                                onLogout = {
+                                    isLoggedIn = false
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            )
                         }
                     }
                 }
