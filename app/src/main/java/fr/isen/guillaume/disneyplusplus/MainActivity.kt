@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +39,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val auth = remember { FirebaseAuth.getInstance() }
 
-                // État de connexion initialisé selon l'utilisateur Firebase actuel
                 var isLoggedIn by remember { mutableStateOf(auth.currentUser != null) }
 
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,9 +57,16 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
-                                if (isLoggedIn && currentRoute != "profile") {
-                                    IconButton(onClick = { navController.navigate("profile") }) {
-                                        Icon(imageVector = Icons.Default.Person, contentDescription = "Aller au Profil")
+                                if (isLoggedIn) {
+                                    if (currentRoute != "search") {
+                                        IconButton(onClick = { navController.navigate("search") }) {
+                                            Icon(imageVector = Icons.Default.Search, contentDescription = "Rechercher")
+                                        }
+                                    }
+                                    if (currentRoute != "profile") {
+                                        IconButton(onClick = { navController.navigate("profile") }) {
+                                            Icon(imageVector = Icons.Default.Person, contentDescription = "Profil")
+                                        }
                                     }
                                 }
                             }
@@ -112,6 +119,17 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("login") {
                                         popUpTo(0) { inclusive = true }
                                     }
+                                }
+                            )
+                        }
+
+                        composable("search") {
+                            SearchScreen(
+                                onMovieClick = { movieId ->
+                                    navController.navigate("movie_detail/$movieId")
+                                },
+                                onUniverseClick = { universeId ->
+                                    navController.navigate("movies/$universeId")
                                 }
                             )
                         }
