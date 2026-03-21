@@ -11,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -85,50 +87,83 @@ fun SearchScreen(
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (showUniverses && searchQuery.isNotEmpty()) {
-                    val filtered = allUniverses.filter { it.name.contains(searchQuery, ignoreCase = true) }
-                    if (filtered.isNotEmpty()) {
+                // 1. On prépare nos listes filtrées
+                val filteredUniverses = if (showUniverses && searchQuery.isNotEmpty()) allUniverses.filter { it.name.contains(searchQuery, ignoreCase = true) } else emptyList()
+                val filteredSagas = if (showSagas && searchQuery.isNotEmpty()) allSagas.filter { it.name.contains(searchQuery, ignoreCase = true) } else emptyList()
+                val filteredMovies = if (showMovies && searchQuery.isNotEmpty()) allMovies.filter { it.title.contains(searchQuery, ignoreCase = true) } else emptyList()
+
+                // 2. On vérifie si TOUT est vide (c'est notre Empty State !)
+                val isSearchEmpty = searchQuery.isNotEmpty() && filteredUniverses.isEmpty() && filteredSagas.isEmpty() && filteredMovies.isEmpty()
+
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+
+                    // L'AFFICHAGE DE L'EMPTY STATE
+                    if (isSearchEmpty) {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 64.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Oups !",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Aucun résultat pour \"$searchQuery\".\nEssayez avec d'autres mots-clés.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+
+                    // L'AFFICHAGE DES RÉSULTATS (S'il y en a)
+                    if (filteredUniverses.isNotEmpty()) {
                         item { Text("Univers", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 8.dp)) }
-                        items(filtered) { univ ->
+                        items(filteredUniverses) { univ ->
                             ListItem(
                                 headlineContent = { Text(univ.name) },
                                 modifier = Modifier.clickable { onUniverseClick(univ.id) },
-                                overlineContent = { Text("UNIVERS") }
+                                overlineContent = { Text("UNIVERS", color = MaterialTheme.colorScheme.primary) }
                             )
                         }
                     }
-                }
 
-                if (showSagas && searchQuery.isNotEmpty()) {
-                    val filtered = allSagas.filter { it.name.contains(searchQuery, ignoreCase = true) }
-                    if (filtered.isNotEmpty()) {
+                    if (filteredSagas.isNotEmpty()) {
                         item { Text("Sagas", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 8.dp)) }
-                        items(filtered) { saga ->
+                        items(filteredSagas) { saga ->
                             ListItem(
                                 headlineContent = { Text(saga.name) },
                                 modifier = Modifier.clickable { onUniverseClick(saga.universe_id) },
-                                overlineContent = { Text("SAGA") }
+                                overlineContent = { Text("SAGA", color = MaterialTheme.colorScheme.primary) }
                             )
                         }
                     }
-                }
 
-                if (showMovies && searchQuery.isNotEmpty()) {
-                    val filtered = allMovies.filter { it.title.contains(searchQuery, ignoreCase = true) }
-                    if (filtered.isNotEmpty()) {
+                    if (filteredMovies.isNotEmpty()) {
                         item { Text("Films", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 8.dp)) }
-                        items(filtered) { movie ->
+                        items(filteredMovies) { movie ->
                             ListItem(
                                 headlineContent = { Text(movie.title) },
                                 modifier = Modifier.clickable { onMovieClick(movie.id) },
                                 supportingContent = { Text(movie.release_date) },
-                                overlineContent = { Text("FILM") }
+                                overlineContent = { Text("FILM", color = MaterialTheme.colorScheme.primary) }
                             )
                         }
                     }
                 }
-            }
         }
     }
 }

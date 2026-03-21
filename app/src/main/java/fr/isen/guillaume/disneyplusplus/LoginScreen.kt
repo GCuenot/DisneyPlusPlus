@@ -28,7 +28,6 @@ import com.google.firebase.database.FirebaseDatabase
 fun LoginScreen(onLoginSuccess: () -> Unit) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
-    // On précise l'URL exacte car elle est en région europe-west1
     val database = FirebaseDatabase.getInstance("https://disneyplusplus-2a2a9-default-rtdb.europe-west1.firebasedatabase.app/").reference
 
     var isLoginMode by remember { mutableStateOf(true) }

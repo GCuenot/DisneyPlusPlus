@@ -1,13 +1,18 @@
 package fr.isen.guillaume.disneyplusplus
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -79,24 +84,52 @@ fun UniverseCard(universe: Universe, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(150.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = RoundedCornerShape(24.dp), // <-- Un arrondi très prononcé !
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = universe.image_url.ifEmpty { "https://via.placeholder.com/400x200?text=${universe.name}" },
-                contentDescription = universe.name,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+
+            // 1. Le fond de base : Un beau dégradé au cas où il n'y a pas d'image
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF0F2027), // Noir/Bleu très profond
+                                Color(0xFF203A43), // Bleu nuit
+                                Color(0xFF2C5364)  // Bleu grisâtre
+                            )
+                        )
+                    )
             )
+
+            // 2. L'image (elle viendra se poser par-dessus le dégradé si elle existe)
+            if (universe.image_url.isNotEmpty()) {
+                AsyncImage(
+                    model = universe.image_url,
+                    contentDescription = universe.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // 3. Le filtre sombre transparent et le texte
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.3f)
+                color = Color.Transparent // On rend la surface transparente pour voir le fond
             ) {
-                Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)), // Filtre sombre
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
                         text = universe.name,
                         style = MaterialTheme.typography.headlineSmall,
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }

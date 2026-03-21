@@ -1,9 +1,12 @@
 package fr.isen.guillaume.disneyplusplus
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
@@ -12,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -133,12 +137,38 @@ fun ProfileScreen(onLogout: () -> Unit) {
 
         if (filteredMovies.isEmpty()) {
             item {
-                Text(
-                    text = if (searchQuery.isEmpty()) "Aucun film dans votre liste." else "Aucun résultat pour \"$searchQuery\"",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // L'icône change selon si on cherche ou si c'est juste vide
+                    Icon(
+                        imageVector = if (searchQuery.isEmpty()) Icons.Default.Movie else Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) // Transparence pour un effet doux
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = if (searchQuery.isEmpty()) "Votre collection est vide" else "Aucun résultat",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (searchQuery.isEmpty())
+                            "Explorez les univers pour ajouter des films à votre filmographie."
+                        else
+                            "Nous n'avons pas trouvé de film pour \"$searchQuery\".",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         } else {
             items(filteredMovies) { movie ->
@@ -192,8 +222,9 @@ fun ProfileInfoCard(icon: ImageVector, label: String, value: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
     ) {
         Row(
             modifier = Modifier
@@ -232,9 +263,21 @@ fun CollectionMovieCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(24.dp), // <-- Un arrondi très prononcé !
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF0F2027), // Noir/Bleu très profond
+                        Color(0xFF203A43), // Bleu nuit
+                        Color(0xFF2C5364)  // Bleu grisâtre
+                    )
+                )
+            )
+            .padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(
                     model = movie.image_url,
@@ -250,23 +293,39 @@ fun CollectionMovieCard(
             }
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatusSwitch(label = "Vu", checked = status["watched"] ?: false) { onStatusChange("watched", it) }
-                StatusSwitch(label = "À voir", checked = status["wantToWatch"] ?: false) { onStatusChange("wantToWatch", it) }
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    StatusSwitch(label = "Vu", checked = status["watched"] ?: false) { onStatusChange("watched", it) }
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    StatusSwitch(label = "À voir", checked = status["wantToWatch"] ?: false) { onStatusChange("wantToWatch", it) }
+                }
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatusSwitch(label = "Possédé", checked = status["own"] ?: false) { onStatusChange("own", it) }
-                StatusSwitch(label = "Céder", checked = status["getRid"] ?: false, enabled = status["own"] ?: false) { onStatusChange("getRid", it) }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.weight(1f)) {
+                    StatusSwitch(label = "Possédé", checked = status["own"] ?: false) { onStatusChange("own", it) }
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    StatusSwitch(label = "Céder", checked = status["getRid"] ?: false, enabled = status["own"] ?: false) { onStatusChange("getRid", it) }
+                }
             }
         }
     }
 }
 
+
 @Composable
 fun StatusSwitch(label: String, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-        Text(text = label, fontSize = 12.sp, modifier = Modifier.width(60.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            modifier = Modifier.weight(1f) // C'est ici que la magie opère
+        )
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,

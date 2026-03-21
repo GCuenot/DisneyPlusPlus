@@ -2,10 +2,7 @@ package fr.isen.guillaume.disneyplusplus.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val DisneyBlue = Color(0xFF0063E5)     // Le bleu électrique signature pour les boutons
+val DisneyDarkBg = Color(0xFF040714)   // Le fond noir/bleu très profond du catalogue
+val DisneyCardBg = Color(0xFF1A1D29)   // Un gris/bleu foncé pour bien détacher les cartes du fond
+val DisneyText = Color(0xFFF9F9F9)     // Un blanc cassé plus doux pour les yeux
