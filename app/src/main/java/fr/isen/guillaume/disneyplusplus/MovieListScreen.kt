@@ -50,7 +50,6 @@ fun MovieListScreen(
     LaunchedEffect(universeId) {
         if (universeId == null) return@LaunchedEffect
         
-        // Charger les sagas pour cet univers
         database.child("sagas").orderByChild("universe_id").equalTo(universeId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -64,7 +63,6 @@ fun MovieListScreen(
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Charger TOUS les films et filtrer manuellement (plus fiable si l'indexation Firebase tarde)
         database.child("movies").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val list = mutableListOf<Movie>()
@@ -93,7 +91,6 @@ fun MovieListScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Groupement par Sagas
             sagas.forEach { saga ->
                 val sagaMovies = movies.filter { it.saga_id == saga.id }
                 if (sagaMovies.isNotEmpty()) {
@@ -111,8 +108,7 @@ fun MovieListScreen(
                 }
             }
 
-            // Films sans saga (ou si aucune saga n'existe dans cet univers)
-            val independentMovies = movies.filter { m -> 
+            val independentMovies = movies.filter { m ->
                 m.saga_id == null || m.saga_id == "" || sagas.none { it.id == m.saga_id }
             }
             
@@ -142,7 +138,7 @@ fun MovieCard(movie: Movie, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(24.dp), // <-- Un arrondi très prononcé !
+        shape = RoundedCornerShape(24.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
     ) {
         Column(
@@ -151,9 +147,9 @@ fun MovieCard(movie: Movie, onClick: () -> Unit) {
                 .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF0F2027), // Noir/Bleu très profond
-                        Color(0xFF203A43), // Bleu nuit
-                        Color(0xFF2C5364)  // Bleu grisâtre
+                        Color(0xFF0F2027),
+                        Color(0xFF203A43),
+                        Color(0xFF2C5364)
                     )
                 )
             )

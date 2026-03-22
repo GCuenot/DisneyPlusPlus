@@ -143,12 +143,11 @@ fun ProfileScreen(onLogout: () -> Unit) {
                         .padding(vertical = 48.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // L'icône change selon si on cherche ou si c'est juste vide
                     Icon(
                         imageVector = if (searchQuery.isEmpty()) Icons.Default.Movie else Icons.Default.Search,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) // Transparence pour un effet doux
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
@@ -264,16 +263,16 @@ fun CollectionMovieCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(24.dp), // <-- Un arrondi très prononcé !
+        shape = RoundedCornerShape(24.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF0F2027), // Noir/Bleu très profond
-                        Color(0xFF203A43), // Bleu nuit
-                        Color(0xFF2C5364)  // Bleu grisâtre
+                        Color(0xFF0F2027),
+                        Color(0xFF203A43),
+                        Color(0xFF2C5364)
                     )
                 )
             )
@@ -324,7 +323,7 @@ fun StatusSwitch(label: String, checked: Boolean, enabled: Boolean = true, onChe
         Text(
             text = label,
             fontSize = 12.sp,
-            modifier = Modifier.weight(1f) // C'est ici que la magie opère
+            modifier = Modifier.weight(1f)
         )
         Switch(
             checked = checked,

@@ -38,7 +38,6 @@ fun MovieDetailScreen(movieId: String?) {
     LaunchedEffect(movieId) {
         if (movieId == null) return@LaunchedEffect
 
-        // Charger les détails du film
         database.child("movies").child(movieId).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 movie = snapshot.getValue(Movie::class.java)?.copy(id = snapshot.key ?: "")
@@ -47,7 +46,6 @@ fun MovieDetailScreen(movieId: String?) {
             override fun onCancelled(error: DatabaseError) { isLoading = false }
         })
 
-        // Charger le statut de l'utilisateur actuel pour ce film
         if (userId != null) {
             database.child("users").child(userId).child("movie_status").child(movieId)
                 .addValueEventListener(object : ValueEventListener {
@@ -62,7 +60,6 @@ fun MovieDetailScreen(movieId: String?) {
                 })
         }
 
-        // Charger les autres utilisateurs qui veulent s'en débarrasser
         database.child("users").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val list = mutableListOf<String>()

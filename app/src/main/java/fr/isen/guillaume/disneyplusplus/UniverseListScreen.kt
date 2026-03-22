@@ -85,27 +85,25 @@ fun UniverseCard(universe: Universe, onClick: () -> Unit) {
             .height(150.dp)
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(24.dp), // <-- Un arrondi très prononcé !
+        shape = RoundedCornerShape(24.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // 1. Le fond de base : Un beau dégradé au cas où il n'y a pas d'image
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF0F2027), // Noir/Bleu très profond
-                                Color(0xFF203A43), // Bleu nuit
-                                Color(0xFF2C5364)  // Bleu grisâtre
+                                Color(0xFF0F2027),
+                                Color(0xFF203A43),
+                                Color(0xFF2C5364)
                             )
                         )
                     )
             )
 
-            // 2. L'image (elle viendra se poser par-dessus le dégradé si elle existe)
             if (universe.image_url.isNotEmpty()) {
                 AsyncImage(
                     model = universe.image_url,
@@ -115,15 +113,14 @@ fun UniverseCard(universe: Universe, onClick: () -> Unit) {
                 )
             }
 
-            // 3. Le filtre sombre transparent et le texte
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = Color.Transparent // On rend la surface transparente pour voir le fond
+                color = Color.Transparent
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)), // Filtre sombre
+                        .background(Color.Black.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

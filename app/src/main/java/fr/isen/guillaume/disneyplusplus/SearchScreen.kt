@@ -87,17 +87,14 @@ fun SearchScreen(
                 CircularProgressIndicator()
             }
         } else {
-                // 1. On prépare nos listes filtrées
                 val filteredUniverses = if (showUniverses && searchQuery.isNotEmpty()) allUniverses.filter { it.name.contains(searchQuery, ignoreCase = true) } else emptyList()
                 val filteredSagas = if (showSagas && searchQuery.isNotEmpty()) allSagas.filter { it.name.contains(searchQuery, ignoreCase = true) } else emptyList()
                 val filteredMovies = if (showMovies && searchQuery.isNotEmpty()) allMovies.filter { it.title.contains(searchQuery, ignoreCase = true) } else emptyList()
 
-                // 2. On vérifie si TOUT est vide (c'est notre Empty State !)
                 val isSearchEmpty = searchQuery.isNotEmpty() && filteredUniverses.isEmpty() && filteredSagas.isEmpty() && filteredMovies.isEmpty()
 
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
 
-                    // L'AFFICHAGE DE L'EMPTY STATE
                     if (isSearchEmpty) {
                         item {
                             Column(
@@ -129,7 +126,6 @@ fun SearchScreen(
                         }
                     }
 
-                    // L'AFFICHAGE DES RÉSULTATS (S'il y en a)
                     if (filteredUniverses.isNotEmpty()) {
                         item { Text("Univers", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 8.dp)) }
                         items(filteredUniverses) { univ ->
